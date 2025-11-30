@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقع الذكريات</title>
+    <style>
+        body {font-family: Arial, sans-serif; background-color: #ffe6f0; margin:0; padding:0;}
+        header {background-color:#ff99c8; color:white; padding:15px; text-align:center;}
+        .container {max-width:900px; margin:20px auto; padding:10px;}
+        .login-box, .memory-box, #addMemoryForm {
+            background-color:white; padding:20px; border-radius:10px; margin-bottom:20px;
+            box-shadow:0 4px 8px rgba(0,0,0,0.1);
+        }
+        input, textarea {width:100%; padding:10px; margin:5px 0 15px; border-radius:5px; border:1px solid #ccc; box-sizing:border-box;}
+        button {background-color:#ff99c8; color:white; border:none; padding:10px 20px; cursor:pointer; border-radius:5px;}
+        button:hover {background-color:#ff66a3;}
+        .memory {border-bottom:1px solid #ccc; padding:10px 0;}
+        .memory img {max-width:100%; border-radius:5px; margin-top:10px;}
+        #logoutBtn {float:right; background-color:#ff4d88;}
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>موقع الذكريات</h1>
+    <button id="logoutBtn" style="display:none;">تسجيل الخروج</button>
+</header>
+
+<div class="container">
+
+    <div class="login-box" id="loginBox">
+        <h2>تسجيل الدخول</h2>
+        <input type="text" id="username" placeholder="اسم المستخدم">
+        <input type="password" id="password" placeholder="كلمة المرور">
+        <button onclick="login()">تسجيل الدخول</button>
+        <p>الحساب التجريبي: user / 1234</p>
+    </div>
+
+    <div id="addMemoryForm" style="display:none;">
+        <h2>إضافة ذكرى جديدة</h2>
+        <input type="text" id="memoryTitle" placeholder="عنوان الذكرى">
+        <textarea id="memoryText" rows="3" placeholder="اكتب الذكرى هنا..."></textarea>
+        <input type="file" id="memoryImage">
+        <button onclick="addMemory()">حفظ الذكرى</button>
+    </div>
+
+    <div id="memoryBox" class="memory-box" style="display:none;">
+        <h2>ذكرياتك</h2>
+        <div id="memoriesList"></div>
+    </div>
+
+</div>
+
+<script>
+    const validUser="user"; const validPass="1234";
+
+    function login(){
+        const username=document.getElementById("username").value;
+        const password=document.getElementById("password").value;
+        if(username===validUser && password===validPass){
+            alert("تم تسجيل الدخول بنجاح!");
+            document.getElementById("loginBox").style.display="none";
+            document.getElementById("addMemoryForm").style.display="block";
+            document.getElementById("memoryBox").style.display="block";
+            document.getElementById("logoutBtn").style.display="inline-block";
+            loadMemories();
+        }else{alert("اسم المستخدم أو كلمة المرور خاطئة");}
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click",()=>{
+        document.getElementById("loginBox").style.display="block";
+        document.getElementById("addMemoryForm").style.display="none";
+        document.getElementById("memoryBox").style.display="none";
+        document.getElementById("logoutBtn").style.display="none";
+        localStorage.clear();
+    });
+
+    function addMemory(){
+        const title=document.getElementById("memoryTitle").value;
+        const text=document.getElementById("memoryText").value;
+        const imageFile=document.getElementById("memoryImage").files[0];
+        if(!title || !text){alert("من فضلك أكمل كل الحقول"); return;}
+        const reader=new FileReader();
+        reader.onload=function(e){
+            const memories=JSON.parse(localStorage.getItem("memories")||"[]");
+            memories.push({title,text,img:e.target.result});
+            localStorage.setItem("memories",JSON.stringify(memories));
+            loadMemories();
+            document.getElementById("memoryTitle").value="";
+            document.getElementById("memoryText").value="";
+            document.getElementById("memoryImage").value="";
+        }
+        if(imageFile){reader.readAsDataURL(imageFile);}else{reader.onload({target:{result:""}});}
+    }
+
+    function loadMemories(){
+        const memoriesList=document.getElementById("memoriesList");
+        memoriesList.innerHTML="";
+        const memories=JSON.parse(localStorage.getItem("memories")||"[]");
+        memories.forEach(mem=>{
+            const memDiv=document.createElement("div");
+            memDiv.className="memory";
+            memDiv.innerHTML=`<h3>${mem.title}</h3><p>${mem.text}</p>${mem.img?`<img src="${mem.img}">`:""}`;
+            memoriesList.appendChild(memDiv);
+        });
+    }
+</script>
+
+</body>
+</html>
